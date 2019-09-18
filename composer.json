@@ -1,5 +1,5 @@
 {
-    "name": "h5p_google_tag",
+    "name": "drupal/h5p_google_tag",
     "type": "drupal-module",
     "description": "Google Tag Manager module logic extension to H5P embed view",
     "keywords": ["Drupal"],
@@ -9,4 +9,5 @@
         "issues": "https://github.com/sisuloome/Sisuloome/issues",
         "source": "https://github.com/sisuloome/h5p_google_tag.git",
     },
+    "require": { }
 }
