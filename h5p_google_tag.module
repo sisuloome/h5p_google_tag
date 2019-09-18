@@ -1,0 +1,40 @@
+<?php
+
+/**
+ * @file
+ * Contains h5p_google_tag.module.
+ */
+
+use Drupal\Core\Routing\RouteMatchInterface;
+
+/**
+ * Implements hook_help().
+ */
+function h5p_google_tag_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    // Main module help for the h5p_google_tag module.
+    case 'help.page.h5p_google_tag':
+      $output = '';
+      $output .= '<h3>' . t('About') . '</h3>';
+      $output .= '<p>' . t('Google Tag Manager module logic extension to H5P embed view') . '</p>';
+      return $output;
+
+    default:
+  }
+}
+
+/**
+ * Implements hook_h5p_additional_embed_head_tags_alter().
+ */
+function h5p_google_tag_h5p_additional_embed_head_tags_alter(&$tags) {
+  $manager = \Drupal::service('h5p_google_tag.helper');
+  $manager->getScriptAttachmentsHtml($tags);
+}
+
+/**
+ * Implements hook_h5p_additional_embed_html_alter().
+ */
+function h5p_google_tag_h5p_additional_embed_html_alter(&$html) {
+  $manager = \Drupal::service('h5p_google_tag.helper');
+  $manager->getNoScriptAttachmentsHtml($html);
+}

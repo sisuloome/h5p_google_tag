@@ -1,0 +1,7 @@
+services:
+  logger.channel.h5p_google_tag:
+    parent: logger.channel_base
+    arguments: ['h5p_google_tag']
+  h5p_google_tag.helper:
+    class: Drupal\h5p_google_tag\H5PGoogleTagHelper
+    arguments: []

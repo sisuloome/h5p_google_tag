@@ -1,0 +1,8 @@
+name: 'H5P Google Tag Manager'
+type: module
+description: 'Google Tag Manager module logic extension to H5P embed view'
+core: 8.x
+package: 'Statistics'
+dependencies:
+  - h5p:h5p
+  - google_tag:google_tag (>=8.x-1.x)
