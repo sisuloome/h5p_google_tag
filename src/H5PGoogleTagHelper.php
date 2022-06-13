@@ -4,6 +4,8 @@ namespace Drupal\h5p_google_tag;
 
 use Drupal\Core\Render\RenderContext;
 use Drupal\Core\Render\BubbleableMetadata;
+use Drupal\Core\Render\RendererInterface;
+use Drupal\google_tag\Entity\ContainerManagerInterface;
 
 /**
  * Class H5PGoogleTagHelper.
@@ -11,10 +13,25 @@ use Drupal\Core\Render\BubbleableMetadata;
 class H5PGoogleTagHelper {
 
   /**
+   * Renderer service.
+   *
+   * @var \Drupal\Core\Render\RendererInterface
+   */
+  protected $renderer;
+
+  /**
+   * Container manager service.
+   *
+   * @var \Drupal\google_tag\Entity\ContainerManagerInterface
+   */
+  protected $containerManager;
+
+  /**
    * Constructs a new H5PGoogleTagHelper object.
    */
-  public function __construct() {
-
+  public function __construct(RendererInterface $renderer, ContainerManagerInterface $containerManager) {
+    $this->renderer = $renderer;
+    $this->containerManager = $containerManager;
   }
 
   /**
@@ -27,12 +44,12 @@ class H5PGoogleTagHelper {
    *   HTML representation of renderable data
    */
   private function renderableToHtml(array $data) {
-    // The code is taked from the source below
+    // The code is taken from the source below
     // https://www.lullabot.com/articles/early-rendering-a-lesson-in-debugging-drupal-8
     $context = new RenderContext();
     /* @var \Drupal\Core\Cache\CacheableDependencyInterface $result */
-    $result = \Drupal::service('renderer')->executeInRenderContext($context, function() use ($data) {
-      return render($data);
+    $result = $this->renderer->executeInRenderContext($context, function() use ($data) {
+      return $this->renderer->render($data);
     });
     // Handle any bubbled cacheability metadata.
     if (!$context->isEmpty()) {
@@ -52,10 +69,8 @@ class H5PGoogleTagHelper {
    *   Tags data structure provided by initial hook.
    */
   public function getScriptAttachmentsHtml(array &$tags) {
-    $manager = \Drupal::service('google_tag.container_manager');
-
     $tmp = [];
-    $manager->getScriptAttachments($tmp);
+    $this->containerManager->getScriptAttachments($tmp);
 
     if ($tmp && isset($tmp['#attached']['html_head'])) {
       // Remove any script identifiers added so that renderer would not throw an
@@ -79,10 +94,8 @@ class H5PGoogleTagHelper {
    *   Data structure provided by initial hook.
    */
   public function getNoScriptAttachmentsHtml(array &$html) {
-    $manager = \Drupal::service('google_tag.container_manager');
-
     $tmp = [];
-    $manager->getNoScriptAttachments($tmp);
+    $this->containerManager->getNoScriptAttachments($tmp);
 
     if ($tmp && count($tmp) > 0) {
       $html[] = $this->renderableToHtml($tmp);
