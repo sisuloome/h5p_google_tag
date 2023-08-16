@@ -9,6 +9,8 @@ The only purpose of this module is to add Google Tag Manager integration into
 the view used for external embedding of content. It uses the same generated JS
 file as the original module does.
 
+**NB! Tis branch works with version 8.x-1.x.**
+
 ## NB! Quirks and fixed
 
 1. The H5P module codebase does not allow inclusion of the HTML into the view.
