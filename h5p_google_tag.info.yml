@@ -5,4 +5,4 @@ core_version_requirement: ^9 || ^10
 package: 'Statistics'
 dependencies:
   - h5p:h5p
-  - google_tag:google_tag (>=8.x-1.x)
+  - google_tag:google_tag (>=2.0.2)

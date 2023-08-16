@@ -9,5 +9,7 @@
         "issues": "https://github.com/sisuloome/Sisuloome/issues",
         "source": "https://github.com/sisuloome/h5p_google_tag.git"
     },
-    "require": { }
+    "require": {
+        "drupal/google_tag": "^2"
+    }
 }

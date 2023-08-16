@@ -14,8 +14,7 @@ function h5p_google_tag_help($route_name, RouteMatchInterface $route_match) {
   switch ($route_name) {
     // Main module help for the h5p_google_tag module.
     case 'help.page.h5p_google_tag':
-      $output = '';
-      $output .= '<h3>' . t('About') . '</h3>';
+      $output = '<h3>' . t('About') . '</h3>';
       $output .= '<p>' . t('Google Tag Manager module logic extension to H5P embed view') . '</p>';
       return $output;
 

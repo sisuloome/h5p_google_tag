@@ -2,6 +2,9 @@
 
 namespace Drupal\h5p_google_tag;
 
+use Drupal\Component\Serialization\Json;
+use Drupal\Core\Extension\ModuleExtensionList;
+use Drupal\Core\File\FileUrlGeneratorInterface;
 use Drupal\Core\Render\RenderContext;
 use Drupal\Core\Render\BubbleableMetadata;
 use Drupal\Core\Render\RendererInterface;
@@ -20,18 +23,26 @@ class H5PGoogleTagHelper {
   protected $renderer;
 
   /**
-   * Container manager service.
+   * File URL generator.
    *
-   * @var \Drupal\google_tag\Entity\ContainerManagerInterface
+   * @var \Drupal\Core\File\FileUrlGeneratorInterface
    */
-  protected $containerManager;
+  protected $fileUrlGenerator;
+
+  /**
+   * Module extension list.
+   *
+   * @var \Drupal\Core\Extension\ModuleExtensionList
+   */
+  protected $moduleExtensionList;
 
   /**
    * Constructs a new H5PGoogleTagHelper object.
    */
-  public function __construct(RendererInterface $renderer, ContainerManagerInterface $containerManager) {
+  public function __construct(RendererInterface $renderer, FileUrlGeneratorInterface $file_url_generator, ModuleExtensionList $extension_list_module) {
     $this->renderer = $renderer;
-    $this->containerManager = $containerManager;
+    $this->fileUrlGenerator = $file_url_generator;
+    $this->moduleExtensionList = $extension_list_module;
   }
 
   /**
@@ -70,19 +81,48 @@ class H5PGoogleTagHelper {
    */
   public function getScriptAttachmentsHtml(array &$tags) {
     $tmp = [];
-    $this->containerManager->getScriptAttachments($tmp);
+    google_tag_page_attachments($tmp);
 
-    if ($tmp && isset($tmp['#attached']['html_head'])) {
-      // Remove any script identifiers added so that renderer would not throw an
-      // error
-      array_walk($tmp['#attached']['html_head'], function(&$single) {
-        if (is_array($single) && count($single) === 2) {
-          if (preg_match('/^google_tag_script_tag/', $single[1])) {
-            unset($single[1]);
+    if ($tmp && isset($tmp['#attached'])) {
+      $script_defaults = [
+        '#type' => 'html_tag',
+        '#tag' => 'script',
+        '#value' => '',
+        '#attributes' => [
+          'type' => 'text/javascript',
+        ],
+      ];
+
+      if (isset($tmp['#attached']['library']) && count($tmp['#attached']['library']) > 0) {
+        $module_version = $this->moduleExtensionList->get('google_tag')->info['version'];
+
+        foreach ($tmp['#attached']['library'] as $name) {
+          switch($name) {
+            case 'google_tag/gtm':
+              $tmp['scripts']['gtm'] = $script_defaults;
+              $tmp['scripts']['gtm']['#attributes']['src'] = $this->fileUrlGenerator->generateString($this->moduleExtensionList->getPath('google_tag') . '/js/gtm.js?v=' . $module_version);
+              break;
+            case 'google_tag/gtag':
+              $tmp['scripts']['gtag'] = $script_defaults;
+              $tmp['scripts']['gtag']['#attributes']['src'] = $this->fileUrlGenerator->generateString($this->moduleExtensionList->getPath('google_tag') . '/js/gtag.js?v=' . $module_version);
+              break;
+            default:
           }
         }
-      });
-      $tags[] = $this->renderableToHtml($tmp['#attached']['html_head']);
+      }
+
+      // Solution taken from lib/Drupal/Core/Asset/JsCollectionRenderer.php line 73
+      $tmp['scripts']['drupal-settings'] = $script_defaults;
+      $tmp['scripts']['drupal-settings']['#value'] = Json::encode($tmp['#attached']['drupalSettings']);
+      $tmp['scripts']['drupal-settings']['#attributes']['type'] = 'application/json';
+      $tmp['scripts']['drupal-settings']['#attributes']['data-drupal-selector'] = 'drupal-settings-json';
+      $tmp['scripts']['drupal-settings']['#weight'] = -10;
+
+      $tmp['scripts']['drupal-settings-loader'] = $script_defaults;
+      $tmp['scripts']['drupal-settings-loader']['#attributes']['src'] = $this->fileUrlGenerator->generateString('core/misc/drupalSettingsLoader.js?v=' . \Drupal::VERSION);
+      $tmp['scripts']['drupal-settings-loader']['#weight'] = -5;
+
+      $tags[] = $this->renderableToHtml($tmp);
     }
   }
 
@@ -95,12 +135,11 @@ class H5PGoogleTagHelper {
    */
   public function getNoScriptAttachmentsHtml(array &$html) {
     $tmp = [];
-    $this->containerManager->getNoScriptAttachments($tmp);
+    google_tag_page_top($tmp);
 
-    if ($tmp && count($tmp) > 0) {
-      $html[] = $this->renderableToHtml($tmp);
+    if ($tmp && isset($tmp['google_tag_gtm_iframe']) && count($tmp['google_tag_gtm_iframe']) > 0) {
+      $html[] = $this->renderableToHtml($tmp['google_tag_gtm_iframe']);
     }
-
   }
 
 }
